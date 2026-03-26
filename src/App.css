@@ -1,38 +1,260 @@
-.App {
-  text-align: center;
+/* layout grid */
+.layout {
+  display: grid;
+  grid-template-areas:
+    "sidebar main";
+  grid-template-columns: 220px 1fr;
+  grid-template-rows: 1fr;
+  height: 100vh;
+  font-family: Arial, sans-serif;
+  background: #f5f6fa;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+/* sidebar */
+.sidebar {
+  grid-area: sidebar;
+  background: #1e1e1e;
+  color: white;
+  padding: 20px;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+.sidebar ul {
+  list-style: none;
+  padding: 0;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+.sidebar li {
+  margin: 10px 0;
+}
+
+.menu-button {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: #2c2c2c;
+  color: white;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.menu-button:hover,
+.menu-button.active {
+  background: #3d3d3d;
+  border-color: #f0b90b;
+}
+
+/* main */
+.main {
+  grid-area: main;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  padding: 32px;
+  text-align: center;
 }
 
-.App-link {
+.stats-banner {
+  display: flex;
+  gap: 16px;
+  margin: 8px 0 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.metric-card {
+  min-width: 240px;
+  padding: 18px 24px;
+  border-radius: 16px;
+  background: white;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+}
+
+.balance-label {
+  margin: 0 0 6px;
+  color: #666;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.balance-value {
+  margin: 0;
+  color: #111;
+}
+
+/* logos */
+.logo-container {
+  display: flex;
+  gap: 40px;
+  margin: 20px 0;
+}
+
+.logo {
+  height: 150px;
+}
+
+/* animations */
+.spin {
+  animation: spin 5s linear infinite;
+}
+
+.spin-reverse {
+  animation: spinReverse 3s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes spinReverse {
+  from { transform: rotate(360deg); }
+  to { transform: rotate(0deg); }
+}
+
+/* link */
+.link {
   color: #61dafb;
+  text-decoration: none;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
+.generate-button {
+  padding: 12px 18px;
+  border: none;
+  border-radius: 999px;
+  background: #61dafb;
+  color: #111;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.reward-burst {
+  position: fixed;
+  color: #19a45b;
+  font-size: 1rem;
+  font-weight: 700;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  animation: rewardBurst 0.9s ease-out forwards;
+  z-index: 1000;
+}
+
+@keyframes rewardBurst {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.8);
   }
-  to {
-    transform: rotate(360deg);
+
+  20% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-34px) scale(1.08);
+  }
+}
+
+.store-card {
+  min-width: 320px;
+  max-width: 720px;
+  padding: 32px;
+  border-radius: 18px;
+  background: white;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.12);
+  text-align: center;
+}
+
+.store-label {
+  margin: 0 0 8px;
+  color: #666;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.store-title {
+  margin: 0;
+  color: #111;
+}
+
+.store-note {
+  margin: 12px 0 0;
+  color: #555;
+}
+
+.upgrade-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(220px, 1fr));
+  gap: 18px;
+  margin-top: 24px;
+}
+
+.upgrade-card {
+  padding: 20px;
+  border: 1px solid #e6e6e6;
+  border-radius: 16px;
+  background: #fafafa;
+}
+
+.upgrade-name {
+  margin: 0 0 8px;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #111;
+}
+
+.upgrade-cost,
+.upgrade-note {
+  margin: 0 0 10px;
+  color: #555;
+}
+
+.store-button {
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 12px;
+  background: #f0b90b;
+  color: #111;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.store-button:disabled {
+  background: #d6d6d6;
+  color: #777;
+  cursor: not-allowed;
+}
+
+.stats-label {
+  margin: 0 0 8px;
+  color: #666;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.stats-value {
+  margin: 0;
+  color: #111;
+}
+
+@media (max-width: 720px) {
+  .layout {
+    grid-template-areas:
+      "sidebar"
+      "main";
+    grid-template-columns: 1fr;
+  }
+
+  .upgrade-grid {
+    grid-template-columns: 1fr;
   }
 }
