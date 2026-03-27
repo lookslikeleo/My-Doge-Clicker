@@ -13,6 +13,9 @@ beforeEach(() => {
   document.cookie = 'doge_mining_pup_2_count=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
   document.cookie = 'doge_sharper_clicker_3_count=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
   document.cookie = 'doge_mining_pup_3_count=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+  document.cookie = 'doge_catcoin_skin_owned=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+  document.cookie = 'doge_mark_skin_owned=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+  document.cookie = 'doge_selected_skin=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
   document.cookie = 'doge_auto_clicker_count=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
 });
 
@@ -41,13 +44,51 @@ test('opens store area with the base upgrade options', () => {
   fireEvent.click(screen.getByRole('button', { name: /store/i }));
 
   expect(screen.getByRole('heading', { name: /upgrade your generator/i })).toBeInTheDocument();
+  expect(screen.getByRole('heading', { name: /^upgrades$/i, level: 2 })).toBeInTheDocument();
+  expect(screen.getByRole('heading', { name: /^skins$/i, level: 2 })).toBeInTheDocument();
   expect(screen.getByText(/sharper clicker/i)).toBeInTheDocument();
   expect(screen.getByText(/mining pup/i)).toBeInTheDocument();
   expect(screen.getByText(/cost: 100\.00 doge/i)).toBeInTheDocument();
   expect(screen.getByText(/cost: 250\.00 doge/i)).toBeInTheDocument();
+  expect(screen.getByText(/^CatCoin Skin$/i)).toBeInTheDocument();
+  expect(screen.getByText(/^Mark Skin$/i)).toBeInTheDocument();
   expect(screen.getAllByText(/owned: 0/i)).toHaveLength(2);
   expect(screen.queryByText(/sharper clicker 2/i)).not.toBeInTheDocument();
   expect(screen.queryByText(/mining pup 2/i)).not.toBeInTheDocument();
+});
+
+test('buying the catcoin skin equips a new center icon', () => {
+  document.cookie = 'doge_balance=10000';
+
+  const { container } = render(<App />);
+
+  fireEvent.click(screen.getByRole('button', { name: /store/i }));
+  fireEvent.click(screen.getByRole('button', { name: /buy catcoin skin/i }));
+
+  expect(screen.getByText(/status: equipped/i)).toBeInTheDocument();
+
+  fireEvent.click(screen.getByRole('button', { name: /dashboard/i }));
+
+  const centerLogo = container.querySelector('.center-logo');
+  expect(centerLogo).toHaveAttribute('src', expect.stringContaining('catcoin.png'));
+  expect(screen.getByRole('heading', { name: /5,000 doge/i })).toBeInTheDocument();
+});
+
+test('buying the mark skin equips a new center icon', () => {
+  document.cookie = 'doge_balance=200000';
+
+  const { container } = render(<App />);
+
+  fireEvent.click(screen.getByRole('button', { name: /store/i }));
+  fireEvent.click(screen.getByRole('button', { name: /buy mark skin/i }));
+
+  expect(screen.getAllByText(/status: equipped/i)).toHaveLength(1);
+
+  fireEvent.click(screen.getByRole('button', { name: /dashboard/i }));
+
+  const centerLogo = container.querySelector('.center-logo');
+  expect(centerLogo).toHaveAttribute('src', expect.stringContaining('mark.png'));
+  expect(screen.getByRole('heading', { name: /100,000 doge/i })).toBeInTheDocument();
 });
 
 test('buying the click upgrade increases doge earned per click', () => {

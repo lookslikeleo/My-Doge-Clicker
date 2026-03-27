@@ -2,9 +2,12 @@ import React, { useEffect, useMemo, useState } from 'react';
 import logo from './logo.svg';
 import etheruemLogo from './etheruem.png';
 import bitcoinLogo from './bitcoin.png';
+import catcoinLogo from './catcoin.png';
+import markLogo from './mark.png';
 import './App.css';
 
 type View = 'dashboard' | 'store';
+type CenterSkin = 'doge' | 'catcoin' | 'mark';
 type RewardBurst = {
   id: number;
   x: number;
@@ -26,6 +29,9 @@ const SHARPER_CLICKER_2_COUNT_COOKIE = 'doge_sharper_clicker_2_count';
 const MINING_PUP_2_COUNT_COOKIE = 'doge_mining_pup_2_count';
 const SHARPER_CLICKER_3_COUNT_COOKIE = 'doge_sharper_clicker_3_count';
 const MINING_PUP_3_COUNT_COOKIE = 'doge_mining_pup_3_count';
+const CATCOIN_SKIN_OWNED_COOKIE = 'doge_catcoin_skin_owned';
+const MARK_SKIN_OWNED_COOKIE = 'doge_mark_skin_owned';
+const SELECTED_SKIN_COOKIE = 'doge_selected_skin';
 const MOON_LOGO_URL = 'https://cdn-icons-png.flaticon.com/512/4964/4964814.png';
 const DEFAULT_BALANCE = 0;
 const DEFAULT_DOGE_PER_CLICK = 1;
@@ -36,6 +42,8 @@ const SHARPER_CLICKER_2_COST = 1000;
 const MINING_PUP_2_COST = 1000;
 const SHARPER_CLICKER_3_COST = 10000;
 const MINING_PUP_3_COST = 10000;
+const CATCOIN_SKIN_COST = 5000;
+const MARK_SKIN_COST = 100000;
 const UPGRADE_COST_MULTIPLIER = 1.25;
 const UPGRADE_POWER_MULTIPLIER = 1.1;
 const TIER_TWO_BOOST_PER_PURCHASE = 0.35;
@@ -61,6 +69,21 @@ function readNumberCookie(name: string, fallback: number) {
 
 function writeNumberCookie(name: string, value: number) {
   document.cookie = `${name}=${encodeURIComponent(value.toString())}; path=/; max-age=31536000; SameSite=Lax`;
+}
+
+function readStringCookie(name: string, fallback: string) {
+  const cookies = document.cookie.split(';').map((cookie) => cookie.trim());
+  const targetCookie = cookies.find((cookie) => cookie.startsWith(`${name}=`));
+
+  if (!targetCookie) {
+    return fallback;
+  }
+
+  return decodeURIComponent(targetCookie.split('=')[1]) || fallback;
+}
+
+function writeStringCookie(name: string, value: string) {
+  document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=31536000; SameSite=Lax`;
 }
 
 function roundToTwo(value: number) {
@@ -133,6 +156,16 @@ function App() {
   const [miningPup3Count, setMiningPup3Count] = useState(() =>
     Math.max(0, Math.round(readNumberCookie(MINING_PUP_3_COUNT_COOKIE, 0))),
   );
+  const [catcoinSkinOwned, setCatcoinSkinOwned] = useState(() =>
+    readNumberCookie(CATCOIN_SKIN_OWNED_COOKIE, 0) >= 1,
+  );
+  const [markSkinOwned, setMarkSkinOwned] = useState(() =>
+    readNumberCookie(MARK_SKIN_OWNED_COOKIE, 0) >= 1,
+  );
+  const [selectedSkin, setSelectedSkin] = useState<CenterSkin>(() => {
+    const savedSkin = readStringCookie(SELECTED_SKIN_COOKIE, 'doge');
+    return savedSkin === 'catcoin' || savedSkin === 'mark' ? savedSkin : 'doge';
+  });
   const [rewardBursts, setRewardBursts] = useState<RewardBurst[]>([]);
   const [manualGenerations, setManualGenerations] = useState<ManualGeneration[]>([]);
 
@@ -210,6 +243,11 @@ function App() {
     () => roundToTwo(dogePerSecond * TIER_THREE_BOOST_PER_PURCHASE),
     [dogePerSecond],
   );
+  const centerLogoSrc = selectedSkin === 'catcoin'
+    ? catcoinLogo
+    : selectedSkin === 'mark'
+      ? markLogo
+      : logo;
 
   const sharperClicker2Unlocked = clickUpgradeCount >= ADVANCED_UPGRADE_UNLOCK_COUNT;
   const miningPup2Unlocked = passiveUpgradeCount >= ADVANCED_UPGRADE_UNLOCK_COUNT;
@@ -274,6 +312,18 @@ function App() {
   }, [miningPup3Count]);
 
   useEffect(() => {
+    writeNumberCookie(CATCOIN_SKIN_OWNED_COOKIE, catcoinSkinOwned ? 1 : 0);
+  }, [catcoinSkinOwned]);
+
+  useEffect(() => {
+    writeNumberCookie(MARK_SKIN_OWNED_COOKIE, markSkinOwned ? 1 : 0);
+  }, [markSkinOwned]);
+
+  useEffect(() => {
+    writeStringCookie(SELECTED_SKIN_COOKIE, selectedSkin);
+  }, [selectedSkin]);
+
+  useEffect(() => {
     const timer = window.setInterval(() => {
       const cookieBalance = readNumberCookie(BALANCE_COOKIE, DEFAULT_BALANCE);
       const cookieClickUpgradeCount = Math.max(
@@ -300,6 +350,9 @@ function App() {
         0,
         Math.round(readNumberCookie(MINING_PUP_3_COUNT_COOKIE, 0)),
       );
+      const cookieCatcoinSkinOwned = readNumberCookie(CATCOIN_SKIN_OWNED_COOKIE, 0) >= 1;
+      const cookieMarkSkinOwned = readNumberCookie(MARK_SKIN_OWNED_COOKIE, 0) >= 1;
+      const cookieSelectedSkin = readStringCookie(SELECTED_SKIN_COOKIE, 'doge');
 
       if (cookieBalance !== roundToTwo(currentBalance)) {
         setCurrentBalance(cookieBalance);
@@ -328,6 +381,20 @@ function App() {
       if (cookieMiningPup3Count !== miningPup3Count) {
         setMiningPup3Count(cookieMiningPup3Count);
       }
+
+      if (cookieCatcoinSkinOwned !== catcoinSkinOwned) {
+        setCatcoinSkinOwned(cookieCatcoinSkinOwned);
+      }
+
+      if (cookieMarkSkinOwned !== markSkinOwned) {
+        setMarkSkinOwned(cookieMarkSkinOwned);
+      }
+
+      if (cookieSelectedSkin !== selectedSkin) {
+        setSelectedSkin(
+          cookieSelectedSkin === 'catcoin' || cookieSelectedSkin === 'mark' ? cookieSelectedSkin : 'doge',
+        );
+      }
     }, COOKIE_SYNC_MS);
 
     return () => window.clearInterval(timer);
@@ -337,8 +404,11 @@ function App() {
     miningPup2Count,
     miningPup3Count,
     passiveUpgradeCount,
+    catcoinSkinOwned,
+    markSkinOwned,
     sharperClicker2Count,
     sharperClicker3Count,
+    selectedSkin,
   ]);
 
   useEffect(() => {
@@ -446,6 +516,46 @@ function App() {
     setCurrentBalance((balance) => roundToTwo(balance + DEVELOPER_REWARD));
   };
 
+  const buyCatcoinSkin = () => {
+    if (catcoinSkinOwned || currentBalance < CATCOIN_SKIN_COST) {
+      return;
+    }
+
+    setCurrentBalance((balance) => roundToTwo(balance - CATCOIN_SKIN_COST));
+    setCatcoinSkinOwned(true);
+    setSelectedSkin('catcoin');
+  };
+
+  const equipDefaultSkin = () => {
+    setSelectedSkin('doge');
+  };
+
+  const equipCatcoinSkin = () => {
+    if (!catcoinSkinOwned) {
+      return;
+    }
+
+    setSelectedSkin('catcoin');
+  };
+
+  const buyMarkSkin = () => {
+    if (markSkinOwned || currentBalance < MARK_SKIN_COST) {
+      return;
+    }
+
+    setCurrentBalance((balance) => roundToTwo(balance - MARK_SKIN_COST));
+    setMarkSkinOwned(true);
+    setSelectedSkin('mark');
+  };
+
+  const equipMarkSkin = () => {
+    if (!markSkinOwned) {
+      return;
+    }
+
+    setSelectedSkin('mark');
+  };
+
   return (
     <div className="layout">
       <header className="topbar">
@@ -542,11 +652,11 @@ function App() {
                 onClick={handleGenerateDogeCoin}
                 aria-label="Generate DogeCoin"
               >
-                <img src={logo} className="logo spin" alt="logo" />
+                <img src={centerLogoSrc} className="logo spin center-logo" alt="logo" />
               </button>
             </div>
 
-            <h1>DogeCoin Generator</h1>
+            <h1 className="dashboard-title">DogeCoin Generator</h1>
             <section className="stats-banner">
               <div className="metric-card">
                 <p className="balance-label">Current balance</p>
@@ -569,105 +679,162 @@ function App() {
             <p className="store-label">Doge Store</p>
             <h1 className="store-title">Upgrade your generator</h1>
 
-            <div className="upgrade-grid">
+            <section className="store-section">
+              <h2 className="store-section-title">Upgrades</h2>
+              <div className="upgrade-grid">
+                <article className="upgrade-card">
+                  <p className="upgrade-name">Sharper Clicker</p>
+                  <p className="upgrade-cost">Cost: {nextClickUpgradeCost.toFixed(2)} DOGE</p>
+                  <p className="upgrade-owned">Owned: {clickUpgradeCount}</p>
+                  <p className="upgrade-note">Next bonus: +{nextClickUpgradeGain.toFixed(2)} DOGE/click</p>
+                  <button
+                    type="button"
+                    className="store-button"
+                    onClick={buyClickUpgrade}
+                    disabled={currentBalance < nextClickUpgradeCost}
+                  >
+                    Buy Click Upgrade
+                  </button>
+                </article>
+
+                <article className="upgrade-card">
+                  <p className="upgrade-name">Mining Pup</p>
+                  <p className="upgrade-cost">Cost: {nextPassiveUpgradeCost.toFixed(2)} DOGE</p>
+                  <p className="upgrade-owned">Owned: {passiveUpgradeCount}</p>
+                  <p className="upgrade-note">Next bonus: +{nextPassiveUpgradeGain.toFixed(2)} DOGE/sec</p>
+                  <button
+                    type="button"
+                    className="store-button"
+                    onClick={buyPassiveUpgrade}
+                    disabled={currentBalance < nextPassiveUpgradeCost}
+                  >
+                    Buy Passive Upgrade
+                  </button>
+                </article>
+
+                {sharperClicker2Unlocked ? (
+                  <article className="upgrade-card">
+                    <p className="upgrade-name">Sharper Clicker 2</p>
+                    <p className="upgrade-cost">Cost: {nextSharperClicker2Cost.toFixed(2)} DOGE</p>
+                    <p className="upgrade-owned">Owned: {sharperClicker2Count}</p>
+                    <p className="upgrade-note">Next bonus: +{nextSharperClicker2Gain.toFixed(2)} DOGE/click</p>
+                    <button
+                      type="button"
+                      className="store-button"
+                      onClick={buySharperClicker2Upgrade}
+                      disabled={currentBalance < nextSharperClicker2Cost}
+                    >
+                      Buy Sharper Clicker 2
+                    </button>
+                  </article>
+                ) : null}
+
+                {miningPup2Unlocked ? (
+                  <article className="upgrade-card">
+                    <p className="upgrade-name">Mining Pup 2</p>
+                    <p className="upgrade-cost">Cost: {nextMiningPup2Cost.toFixed(2)} DOGE</p>
+                    <p className="upgrade-owned">Owned: {miningPup2Count}</p>
+                    <p className="upgrade-note">Next bonus: +{nextMiningPup2Gain.toFixed(2)} DOGE/sec</p>
+                    <button
+                      type="button"
+                      className="store-button"
+                      onClick={buyMiningPup2Upgrade}
+                      disabled={currentBalance < nextMiningPup2Cost}
+                    >
+                      Buy Mining Pup 2
+                    </button>
+                  </article>
+                ) : null}
+
+                {sharperClicker3Unlocked ? (
+                  <article className="upgrade-card">
+                    <p className="upgrade-name">Sharper Clicker 3</p>
+                    <p className="upgrade-cost">Cost: {nextSharperClicker3Cost.toFixed(2)} DOGE</p>
+                    <p className="upgrade-owned">Owned: {sharperClicker3Count}</p>
+                    <p className="upgrade-note">Next bonus: +{nextSharperClicker3Gain.toFixed(2)} DOGE/click</p>
+                    <button
+                      type="button"
+                      className="store-button"
+                      onClick={buySharperClicker3Upgrade}
+                      disabled={currentBalance < nextSharperClicker3Cost}
+                    >
+                      Buy Sharper Clicker 3
+                    </button>
+                  </article>
+                ) : null}
+
+                {miningPup3Unlocked ? (
+                  <article className="upgrade-card">
+                    <p className="upgrade-name">Mining Pup 3</p>
+                    <p className="upgrade-cost">Cost: {nextMiningPup3Cost.toFixed(2)} DOGE</p>
+                    <p className="upgrade-owned">Owned: {miningPup3Count}</p>
+                    <p className="upgrade-note">Next bonus: +{nextMiningPup3Gain.toFixed(2)} DOGE/sec</p>
+                    <button
+                      type="button"
+                      className="store-button"
+                      onClick={buyMiningPup3Upgrade}
+                      disabled={currentBalance < nextMiningPup3Cost}
+                    >
+                      Buy Mining Pup 3
+                    </button>
+                  </article>
+                ) : null}
+              </div>
+            </section>
+
+            <section className="store-section">
+              <h2 className="store-section-title">Skins</h2>
+              <div className="upgrade-grid">
               <article className="upgrade-card">
-                <p className="upgrade-name">Sharper Clicker</p>
-                <p className="upgrade-cost">Cost: {nextClickUpgradeCost.toFixed(2)} DOGE</p>
-                <p className="upgrade-owned">Owned: {clickUpgradeCount}</p>
-                <p className="upgrade-note">Next bonus: +{nextClickUpgradeGain.toFixed(2)} DOGE/click</p>
+                <p className="upgrade-name">Default Doge Skin</p>
+                <p className="upgrade-cost">Cost: 0.00 DOGE</p>
+                <p className="upgrade-owned">Status: {selectedSkin === 'doge' ? 'Equipped' : 'Owned'}</p>
+                <p className="upgrade-note">Use the original spinning Doge logo in the center.</p>
                 <button
                   type="button"
                   className="store-button"
-                  onClick={buyClickUpgrade}
-                  disabled={currentBalance < nextClickUpgradeCost}
+                  onClick={equipDefaultSkin}
+                  disabled={selectedSkin === 'doge'}
                 >
-                  Buy Click Upgrade
+                  {selectedSkin === 'doge' ? 'Equipped' : 'Equip Doge Skin'}
                 </button>
               </article>
 
               <article className="upgrade-card">
-                <p className="upgrade-name">Mining Pup</p>
-                <p className="upgrade-cost">Cost: {nextPassiveUpgradeCost.toFixed(2)} DOGE</p>
-                <p className="upgrade-owned">Owned: {passiveUpgradeCount}</p>
-                <p className="upgrade-note">Next bonus: +{nextPassiveUpgradeGain.toFixed(2)} DOGE/sec</p>
+                <p className="upgrade-name">CatCoin Skin</p>
+                <p className="upgrade-cost">Cost: {CATCOIN_SKIN_COST.toFixed(2)} DOGE</p>
+                <p className="upgrade-owned">
+                  Status: {catcoinSkinOwned ? (selectedSkin === 'catcoin' ? 'Equipped' : 'Owned') : 'Locked'}
+                </p>
+                <p className="upgrade-note">Replace the center spinner with the CatCoin image.</p>
                 <button
                   type="button"
                   className="store-button"
-                  onClick={buyPassiveUpgrade}
-                  disabled={currentBalance < nextPassiveUpgradeCost}
+                  onClick={catcoinSkinOwned ? equipCatcoinSkin : buyCatcoinSkin}
+                  disabled={catcoinSkinOwned && selectedSkin === 'catcoin'}
                 >
-                  Buy Passive Upgrade
+                  {catcoinSkinOwned ? (selectedSkin === 'catcoin' ? 'Equipped' : 'Equip CatCoin Skin') : 'Buy CatCoin Skin'}
                 </button>
               </article>
 
-              {sharperClicker2Unlocked ? (
-                <article className="upgrade-card">
-                  <p className="upgrade-name">Sharper Clicker 2</p>
-                  <p className="upgrade-cost">Cost: {nextSharperClicker2Cost.toFixed(2)} DOGE</p>
-                  <p className="upgrade-owned">Owned: {sharperClicker2Count}</p>
-                  <p className="upgrade-note">Next bonus: +{nextSharperClicker2Gain.toFixed(2)} DOGE/click</p>
-                  <button
-                    type="button"
-                    className="store-button"
-                    onClick={buySharperClicker2Upgrade}
-                    disabled={currentBalance < nextSharperClicker2Cost}
-                  >
-                    Buy Sharper Clicker 2
-                  </button>
-                </article>
-              ) : null}
-
-              {miningPup2Unlocked ? (
-                <article className="upgrade-card">
-                  <p className="upgrade-name">Mining Pup 2</p>
-                  <p className="upgrade-cost">Cost: {nextMiningPup2Cost.toFixed(2)} DOGE</p>
-                  <p className="upgrade-owned">Owned: {miningPup2Count}</p>
-                  <p className="upgrade-note">Next bonus: +{nextMiningPup2Gain.toFixed(2)} DOGE/sec</p>
-                  <button
-                    type="button"
-                    className="store-button"
-                    onClick={buyMiningPup2Upgrade}
-                    disabled={currentBalance < nextMiningPup2Cost}
-                  >
-                    Buy Mining Pup 2
-                  </button>
-                </article>
-              ) : null}
-
-              {sharperClicker3Unlocked ? (
-                <article className="upgrade-card">
-                  <p className="upgrade-name">Sharper Clicker 3</p>
-                  <p className="upgrade-cost">Cost: {nextSharperClicker3Cost.toFixed(2)} DOGE</p>
-                  <p className="upgrade-owned">Owned: {sharperClicker3Count}</p>
-                  <p className="upgrade-note">Next bonus: +{nextSharperClicker3Gain.toFixed(2)} DOGE/click</p>
-                  <button
-                    type="button"
-                    className="store-button"
-                    onClick={buySharperClicker3Upgrade}
-                    disabled={currentBalance < nextSharperClicker3Cost}
-                  >
-                    Buy Sharper Clicker 3
-                  </button>
-                </article>
-              ) : null}
-
-              {miningPup3Unlocked ? (
-                <article className="upgrade-card">
-                  <p className="upgrade-name">Mining Pup 3</p>
-                  <p className="upgrade-cost">Cost: {nextMiningPup3Cost.toFixed(2)} DOGE</p>
-                  <p className="upgrade-owned">Owned: {miningPup3Count}</p>
-                  <p className="upgrade-note">Next bonus: +{nextMiningPup3Gain.toFixed(2)} DOGE/sec</p>
-                  <button
-                    type="button"
-                    className="store-button"
-                    onClick={buyMiningPup3Upgrade}
-                    disabled={currentBalance < nextMiningPup3Cost}
-                  >
-                    Buy Mining Pup 3
-                  </button>
-                </article>
-              ) : null}
-            </div>
+              <article className="upgrade-card">
+                <p className="upgrade-name">Mark Skin</p>
+                <p className="upgrade-cost">Cost: {MARK_SKIN_COST.toFixed(2)} DOGE</p>
+                <p className="upgrade-owned">
+                  Status: {markSkinOwned ? (selectedSkin === 'mark' ? 'Equipped' : 'Owned') : 'Locked'}
+                </p>
+                <p className="upgrade-note">Replace the center spinner with the Mark image.</p>
+                <button
+                  type="button"
+                  className="store-button"
+                  onClick={markSkinOwned ? equipMarkSkin : buyMarkSkin}
+                  disabled={markSkinOwned && selectedSkin === 'mark'}
+                >
+                  {markSkinOwned ? (selectedSkin === 'mark' ? 'Equipped' : 'Equip Mark Skin') : 'Buy Mark Skin'}
+                </button>
+              </article>
+              </div>
+            </section>
           </section>
         )}
       </main>
