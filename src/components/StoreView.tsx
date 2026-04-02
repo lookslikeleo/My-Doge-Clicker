@@ -58,6 +58,15 @@ type StoreViewProps = {
   onEquipMarkSkin: () => void;
 };
 
+type UpgradeCardConfig = UpgradeCardProps & {
+  key: string;
+};
+
+type UpgradeGroup = {
+  title: string;
+  cards: UpgradeCardConfig[];
+};
+
 function UpgradeCard({
   name,
   cost,
@@ -127,133 +136,159 @@ export function StoreView({
   onBuyMarkSkin,
   onEquipMarkSkin,
 }: StoreViewProps) {
+  const clickUpgradeCards: UpgradeCardConfig[] = [
+    {
+      key: 'turbo-paw',
+      name: 'Turbo Paw',
+      cost: nextClickUpgradeCost,
+      ownedLabel: `Owned: ${clickUpgradeCount}`,
+      note: `Next bonus: +${nextClickUpgradeGain.toFixed(2)} DOGE/click`,
+      onClick: onBuyClickUpgrade,
+      disabled: currentBalance < nextClickUpgradeCost,
+      highlighted: currentBalance >= nextClickUpgradeCost,
+      iconSrc: 'https://upload.wikimedia.org/wikipedia/commons/c/c0/Dog_Paw_Print.png',
+      iconAlt: 'Dog paw print',
+    },
+    ...(sharperClicker2Unlocked
+      ? [{
+          key: 'bark-booster',
+          name: 'Bark Booster',
+          cost: nextSharperClicker2Cost,
+          ownedLabel: `Owned: ${sharperClicker2Count}`,
+          note: `Next bonus: +${nextSharperClicker2Gain.toFixed(2)} DOGE/click`,
+          onClick: onBuySharperClicker2Upgrade,
+          disabled: currentBalance < nextSharperClicker2Cost,
+          highlighted: currentBalance >= nextSharperClicker2Cost,
+          iconSrc: 'https://cdn-icons-png.flaticon.com/512/5869/5869167.png',
+          iconAlt: 'Bark icon',
+        }]
+      : []),
+    ...(sharperClicker3Unlocked
+      ? [{
+          key: 'zoomies-engine',
+          name: 'Zoomies Engine',
+          cost: nextSharperClicker3Cost,
+          ownedLabel: `Owned: ${sharperClicker3Count}`,
+          note: `Next bonus: +${nextSharperClicker3Gain.toFixed(2)} DOGE/click`,
+          onClick: onBuySharperClicker3Upgrade,
+          disabled: currentBalance < nextSharperClicker3Cost,
+          highlighted: currentBalance >= nextSharperClicker3Cost,
+          iconSrc: 'https://cdn-icons-png.flaticon.com/512/91/91531.png',
+          iconAlt: 'Running dog icon',
+        }]
+      : []),
+  ];
+
+  const passiveUpgradeCards: UpgradeCardConfig[] = [
+    {
+      key: 'doge-den',
+      name: 'Doge Den',
+      cost: nextPassiveUpgradeCost,
+      ownedLabel: `Owned: ${passiveUpgradeCount}`,
+      note: `Next bonus: +${nextPassiveUpgradeGain.toFixed(2)} DOGE/sec`,
+      onClick: onBuyPassiveUpgrade,
+      disabled: currentBalance < nextPassiveUpgradeCost,
+      highlighted: currentBalance >= nextPassiveUpgradeCost,
+      iconSrc: logo,
+      iconAlt: 'Doge logo',
+    },
+    ...(miningPup2Unlocked
+      ? [{
+          key: 'kennel-crew',
+          name: 'Kennel Crew',
+          cost: nextMiningPup2Cost,
+          ownedLabel: `Owned: ${miningPup2Count}`,
+          note: `Next bonus: +${nextMiningPup2Gain.toFixed(2)} DOGE/sec`,
+          onClick: onBuyMiningPup2Upgrade,
+          disabled: currentBalance < nextMiningPup2Cost,
+          highlighted: currentBalance >= nextMiningPup2Cost,
+          iconSrc: etheruemLogo,
+          iconAlt: 'Ethereum icon',
+        }]
+      : []),
+    ...(miningPup3Unlocked
+      ? [{
+          key: 'moonpack-alpha',
+          name: 'Moonpack Alpha',
+          cost: nextMiningPup3Cost,
+          ownedLabel: `Owned: ${miningPup3Count}`,
+          note: `Next bonus: +${nextMiningPup3Gain.toFixed(2)} DOGE/sec`,
+          onClick: onBuyMiningPup3Upgrade,
+          disabled: currentBalance < nextMiningPup3Cost,
+          highlighted: currentBalance >= nextMiningPup3Cost,
+          iconSrc: bitcoinLogo,
+          iconAlt: 'Bitcoin icon',
+        }]
+      : []),
+  ];
+
+  const upgradeGroups: UpgradeGroup[] = [
+    { title: 'Doge Per Click', cards: clickUpgradeCards },
+    { title: 'Doge Per Second', cards: passiveUpgradeCards },
+  ];
+
+  const skinCards: UpgradeCardConfig[] = [
+    {
+      key: 'default-doge-skin',
+      name: 'Default Doge Skin',
+      cost: 0,
+      ownedLabel: `Status: ${selectedSkin === 'doge' ? 'Equipped' : 'Owned'}`,
+      note: 'Use the original spinning Doge logo in the center.',
+      onClick: onEquipDefaultSkin,
+      disabled: selectedSkin === 'doge',
+      iconSrc: logo,
+      iconAlt: 'Doge skin preview',
+    },
+    {
+      key: 'catcoin-skin',
+      name: 'CatCoin Skin',
+      cost: CATCOIN_SKIN_COST,
+      ownedLabel: `Status: ${catcoinSkinOwned ? (selectedSkin === 'catcoin' ? 'Equipped' : 'Owned') : 'Locked'}`,
+      note: 'Replace the center spinner with the CatCoin image.',
+      onClick: catcoinSkinOwned ? onEquipCatcoinSkin : onBuyCatcoinSkin,
+      disabled: catcoinSkinOwned ? selectedSkin === 'catcoin' : currentBalance < CATCOIN_SKIN_COST,
+      highlighted: !catcoinSkinOwned && currentBalance >= CATCOIN_SKIN_COST,
+      iconSrc: catcoinLogo,
+      iconAlt: 'CatCoin skin preview',
+    },
+    {
+      key: 'mark-skin',
+      name: 'Mark Skin',
+      cost: MARK_SKIN_COST,
+      ownedLabel: `Status: ${markSkinOwned ? (selectedSkin === 'mark' ? 'Equipped' : 'Owned') : 'Locked'}`,
+      note: 'Replace the center spinner with the Mark image.',
+      onClick: markSkinOwned ? onEquipMarkSkin : onBuyMarkSkin,
+      disabled: markSkinOwned ? selectedSkin === 'mark' : currentBalance < MARK_SKIN_COST,
+      highlighted: !markSkinOwned && currentBalance >= MARK_SKIN_COST,
+      iconSrc: markLogo,
+      iconAlt: 'Mark skin preview',
+    },
+  ];
+
   return (
     <section className="store-card">
       <p className="store-label">Doge Store</p>
 
       <section className="store-section">
         <h2 className="store-section-title">Upgrades</h2>
-        <div className="upgrade-group">
-          <h3 className="upgrade-group-title">Doge Per Click</h3>
-          <div className="upgrade-grid">
-            <UpgradeCard
-              name="Turbo Paw"
-              cost={nextClickUpgradeCost}
-              ownedLabel={`Owned: ${clickUpgradeCount}`}
-              note={`Next bonus: +${nextClickUpgradeGain.toFixed(2)} DOGE/click`}
-              onClick={onBuyClickUpgrade}
-              disabled={currentBalance < nextClickUpgradeCost}
-              highlighted={currentBalance >= nextClickUpgradeCost}
-              iconSrc="https://upload.wikimedia.org/wikipedia/commons/c/c0/Dog_Paw_Print.png"
-              iconAlt="Dog paw print"
-            />
-            {sharperClicker2Unlocked ? (
-              <UpgradeCard
-                name="Bark Booster"
-                cost={nextSharperClicker2Cost}
-                ownedLabel={`Owned: ${sharperClicker2Count}`}
-                note={`Next bonus: +${nextSharperClicker2Gain.toFixed(2)} DOGE/click`}
-                onClick={onBuySharperClicker2Upgrade}
-                disabled={currentBalance < nextSharperClicker2Cost}
-                highlighted={currentBalance >= nextSharperClicker2Cost}
-                iconSrc="https://cdn-icons-png.flaticon.com/512/5869/5869167.png"
-                iconAlt="Bark icon"
-              />
-            ) : null}
-            {sharperClicker3Unlocked ? (
-              <UpgradeCard
-                name="Zoomies Engine"
-                cost={nextSharperClicker3Cost}
-                ownedLabel={`Owned: ${sharperClicker3Count}`}
-                note={`Next bonus: +${nextSharperClicker3Gain.toFixed(2)} DOGE/click`}
-                onClick={onBuySharperClicker3Upgrade}
-                disabled={currentBalance < nextSharperClicker3Cost}
-                highlighted={currentBalance >= nextSharperClicker3Cost}
-                iconSrc="https://cdn-icons-png.flaticon.com/512/91/91531.png"
-                iconAlt="Running dog icon"
-              />
-            ) : null}
+        {upgradeGroups.map((group) => (
+          <div key={group.title} className="upgrade-group">
+            <h3 className="upgrade-group-title">{group.title}</h3>
+            <div className="upgrade-grid">
+              {group.cards.map(({ key, ...card }) => (
+                <UpgradeCard key={key} {...card} />
+              ))}
+            </div>
           </div>
-        </div>
-        <div className="upgrade-group">
-          <h3 className="upgrade-group-title">Doge Per Second</h3>
-          <div className="upgrade-grid">
-            <UpgradeCard
-              name="Doge Den"
-              cost={nextPassiveUpgradeCost}
-              ownedLabel={`Owned: ${passiveUpgradeCount}`}
-              note={`Next bonus: +${nextPassiveUpgradeGain.toFixed(2)} DOGE/sec`}
-              onClick={onBuyPassiveUpgrade}
-              disabled={currentBalance < nextPassiveUpgradeCost}
-              highlighted={currentBalance >= nextPassiveUpgradeCost}
-              iconSrc={logo}
-              iconAlt="Doge logo"
-            />
-            {miningPup2Unlocked ? (
-              <UpgradeCard
-                name="Kennel Crew"
-                cost={nextMiningPup2Cost}
-                ownedLabel={`Owned: ${miningPup2Count}`}
-                note={`Next bonus: +${nextMiningPup2Gain.toFixed(2)} DOGE/sec`}
-                onClick={onBuyMiningPup2Upgrade}
-                disabled={currentBalance < nextMiningPup2Cost}
-                highlighted={currentBalance >= nextMiningPup2Cost}
-                iconSrc={etheruemLogo}
-                iconAlt="Ethereum icon"
-              />
-            ) : null}
-            {miningPup3Unlocked ? (
-              <UpgradeCard
-                name="Moonpack Alpha"
-                cost={nextMiningPup3Cost}
-                ownedLabel={`Owned: ${miningPup3Count}`}
-                note={`Next bonus: +${nextMiningPup3Gain.toFixed(2)} DOGE/sec`}
-                onClick={onBuyMiningPup3Upgrade}
-                disabled={currentBalance < nextMiningPup3Cost}
-                highlighted={currentBalance >= nextMiningPup3Cost}
-                iconSrc={bitcoinLogo}
-                iconAlt="Bitcoin icon"
-              />
-            ) : null}
-          </div>
-        </div>
+        ))}
       </section>
 
       <section className="store-section">
         <h2 className="store-section-title">Skins</h2>
         <div className="upgrade-grid">
-          <UpgradeCard
-            name="Default Doge Skin"
-            cost={0}
-            ownedLabel={`Status: ${selectedSkin === 'doge' ? 'Equipped' : 'Owned'}`}
-            note="Use the original spinning Doge logo in the center."
-            onClick={onEquipDefaultSkin}
-            disabled={selectedSkin === 'doge'}
-            iconSrc={logo}
-            iconAlt="Doge skin preview"
-          />
-          <UpgradeCard
-            name="CatCoin Skin"
-            cost={CATCOIN_SKIN_COST}
-            ownedLabel={`Status: ${catcoinSkinOwned ? (selectedSkin === 'catcoin' ? 'Equipped' : 'Owned') : 'Locked'}`}
-            note="Replace the center spinner with the CatCoin image."
-            onClick={catcoinSkinOwned ? onEquipCatcoinSkin : onBuyCatcoinSkin}
-            disabled={catcoinSkinOwned ? selectedSkin === 'catcoin' : currentBalance < CATCOIN_SKIN_COST}
-            highlighted={!catcoinSkinOwned && currentBalance >= CATCOIN_SKIN_COST}
-            iconSrc={catcoinLogo}
-            iconAlt="CatCoin skin preview"
-          />
-          <UpgradeCard
-            name="Mark Skin"
-            cost={MARK_SKIN_COST}
-            ownedLabel={`Status: ${markSkinOwned ? (selectedSkin === 'mark' ? 'Equipped' : 'Owned') : 'Locked'}`}
-            note="Replace the center spinner with the Mark image."
-            onClick={markSkinOwned ? onEquipMarkSkin : onBuyMarkSkin}
-            disabled={markSkinOwned ? selectedSkin === 'mark' : currentBalance < MARK_SKIN_COST}
-            highlighted={!markSkinOwned && currentBalance >= MARK_SKIN_COST}
-            iconSrc={markLogo}
-            iconAlt="Mark skin preview"
-          />
+          {skinCards.map(({ key, ...card }) => (
+            <UpgradeCard key={key} {...card} />
+          ))}
         </div>
       </section>
     </section>

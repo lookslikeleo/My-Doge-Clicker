@@ -32,7 +32,7 @@ export const UPGRADE_POWER_MULTIPLIER = 1.1;
 export const TIER_TWO_BOOST_PER_PURCHASE = 0.35;
 export const TIER_THREE_BOOST_PER_PURCHASE = 0.5;
 
-export const PASSIVE_TICK_MS = 1000;
+export const PASSIVE_TICK_MS = 250;
 export const MANUAL_RATE_WINDOW_MS = 1000;
 export const ADVANCED_UPGRADE_UNLOCK_COUNT = 10;
 export const DEVELOPER_REWARD = 100000;

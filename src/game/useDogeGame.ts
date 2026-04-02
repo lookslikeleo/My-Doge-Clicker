@@ -297,8 +297,10 @@ export function useDogeGame() {
       return undefined;
     }
 
+    const passiveDogePerTick = totalPassiveDogePerSecond * (PASSIVE_TICK_MS / 1000);
+
     const timer = window.setInterval(() => {
-      setCurrentBalance((balance) => roundToTwo(balance + totalPassiveDogePerSecond));
+      setCurrentBalance((balance) => roundToTwo(balance + passiveDogePerTick));
     }, PASSIVE_TICK_MS);
 
     return () => window.clearInterval(timer);

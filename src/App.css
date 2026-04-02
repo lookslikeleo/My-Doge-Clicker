@@ -515,12 +515,59 @@
   }
 
   .upgrade-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
   }
 
   .store-card {
     width: min(100%, 640px);
     min-width: 0;
-    padding: 18px;
+    padding: 16px 14px;
+  }
+
+  .upgrade-card {
+    padding: 10px 10px 8px;
+    border-radius: 12px;
+  }
+
+  .upgrade-header {
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+
+  .upgrade-name {
+    font-size: 0.92rem;
+  }
+
+  .upgrade-icon {
+    width: 30px;
+    height: 30px;
+    top: 3px;
+  }
+
+  .upgrade-cost,
+  .upgrade-note,
+  .upgrade-owned {
+    font-size: 0.8rem;
+    line-height: 1.25;
+  }
+
+  .upgrade-group + .upgrade-group {
+    margin-top: 14px;
+  }
+
+  .store-section {
+    margin-top: 14px;
+  }
+
+  .store-section-title,
+  .upgrade-group-title {
+    margin-bottom: 8px;
+  }
+}
+
+@media (max-width: 420px) {
+  .upgrade-grid {
+    grid-template-columns: 1fr;
   }
 }
