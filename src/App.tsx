@@ -28,6 +28,8 @@ function App() {
             miningPup2Moons={game.miningPup2Moons}
             miningPup3Moons={game.miningPup3Moons}
             rewardBursts={game.rewardBursts}
+            orbitDragUnlocked={game.orbitDragEnabled}
+            centerLogoDragUnlocked={game.centerLogoDragEnabled}
             onGenerate={game.handleGenerateDogeCoin}
             onDeveloperReward={game.addDeveloperDoge}
           />
@@ -42,6 +44,10 @@ function App() {
             miningPup3Count={game.miningPup3Count}
             catcoinSkinOwned={game.catcoinSkinOwned}
             markSkinOwned={game.markSkinOwned}
+            orbitDragUnlocked={game.orbitDragUnlocked}
+            orbitDragEnabled={game.orbitDragEnabled}
+            centerLogoDragUnlocked={game.centerLogoDragUnlocked}
+            centerLogoDragEnabled={game.centerLogoDragEnabled}
             selectedSkin={game.selectedSkin}
             nextClickUpgradeCost={game.nextClickUpgradeCost}
             nextPassiveUpgradeCost={game.nextPassiveUpgradeCost}
@@ -70,6 +76,10 @@ function App() {
             onEquipCatcoinSkin={game.equipCatcoinSkin}
             onBuyMarkSkin={game.buyMarkSkin}
             onEquipMarkSkin={game.equipMarkSkin}
+            onBuyOrbitDragUnlock={game.buyOrbitDragUnlock}
+            onBuyCenterLogoDragUnlock={game.buyCenterLogoDragUnlock}
+            onToggleOrbitDragEnabled={game.toggleOrbitDragEnabled}
+            onToggleCenterLogoDragEnabled={game.toggleCenterLogoDragEnabled}
           />
         )}
       </main>

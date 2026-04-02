@@ -3,7 +3,12 @@ import bitcoinLogo from '../assets/images/bitcoin.png';
 import etheruemLogo from '../assets/images/etheruem.png';
 import logo from '../assets/images/logo.svg';
 import markLogo from '../assets/images/mark.png';
-import { CATCOIN_SKIN_COST, MARK_SKIN_COST } from '../game/constants';
+import {
+  CATCOIN_SKIN_COST,
+  CENTER_LOGO_DRAG_COST,
+  MARK_SKIN_COST,
+  ORBIT_DRAG_COST,
+} from '../game/constants';
 import { CenterSkin } from '../game/types';
 
 type UpgradeCardProps = {
@@ -16,6 +21,9 @@ type UpgradeCardProps = {
   highlighted?: boolean;
   iconSrc?: string;
   iconAlt?: string;
+  toggleValue?: boolean;
+  onToggle?: () => void;
+  toggleLabel?: string;
 };
 
 type StoreViewProps = {
@@ -28,6 +36,10 @@ type StoreViewProps = {
   miningPup3Count: number;
   catcoinSkinOwned: boolean;
   markSkinOwned: boolean;
+  orbitDragUnlocked: boolean;
+  orbitDragEnabled: boolean;
+  centerLogoDragUnlocked: boolean;
+  centerLogoDragEnabled: boolean;
   selectedSkin: CenterSkin;
   nextClickUpgradeCost: number;
   nextPassiveUpgradeCost: number;
@@ -56,6 +68,10 @@ type StoreViewProps = {
   onEquipCatcoinSkin: () => void;
   onBuyMarkSkin: () => void;
   onEquipMarkSkin: () => void;
+  onBuyOrbitDragUnlock: () => void;
+  onBuyCenterLogoDragUnlock: () => void;
+  onToggleOrbitDragEnabled: () => void;
+  onToggleCenterLogoDragEnabled: () => void;
 };
 
 type UpgradeCardConfig = UpgradeCardProps & {
@@ -77,6 +93,9 @@ function UpgradeCard({
   highlighted = false,
   iconSrc,
   iconAlt,
+  toggleValue,
+  onToggle,
+  toggleLabel,
 }: UpgradeCardProps) {
   return (
     <button
@@ -93,6 +112,30 @@ function UpgradeCard({
       <p className="upgrade-cost">Cost: {cost.toFixed(2)} DOGE</p>
       <p className="upgrade-owned">{ownedLabel}</p>
       <p className="upgrade-note">{note}</p>
+      {onToggle ? (
+        <span
+          className="upgrade-toggle-row"
+          onClick={(event) => {
+            event.stopPropagation();
+            onToggle();
+          }}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault();
+              event.stopPropagation();
+              onToggle();
+            }
+          }}
+          role="switch"
+          aria-checked={toggleValue}
+          tabIndex={disabled ? -1 : 0}
+        >
+          <span className="upgrade-toggle-label">{toggleLabel ?? 'Enabled'}</span>
+          <span className={`upgrade-toggle${toggleValue ? ' upgrade-toggle-on' : ''}`} aria-hidden="true">
+            <span className="upgrade-toggle-thumb" />
+          </span>
+        </span>
+      ) : null}
     </button>
   );
 }
@@ -107,6 +150,10 @@ export function StoreView({
   miningPup3Count,
   catcoinSkinOwned,
   markSkinOwned,
+  orbitDragUnlocked,
+  orbitDragEnabled,
+  centerLogoDragUnlocked,
+  centerLogoDragEnabled,
   selectedSkin,
   nextClickUpgradeCost,
   nextPassiveUpgradeCost,
@@ -135,6 +182,10 @@ export function StoreView({
   onEquipCatcoinSkin,
   onBuyMarkSkin,
   onEquipMarkSkin,
+  onBuyOrbitDragUnlock,
+  onBuyCenterLogoDragUnlock,
+  onToggleOrbitDragEnabled,
+  onToggleCenterLogoDragEnabled,
 }: StoreViewProps) {
   const clickUpgradeCards: UpgradeCardConfig[] = [
     {
@@ -265,6 +316,39 @@ export function StoreView({
     },
   ];
 
+  const extraCards: UpgradeCardConfig[] = [
+    {
+      key: 'orbit-drag-unlock',
+      name: 'Orbit Dragging',
+      cost: ORBIT_DRAG_COST,
+      ownedLabel: `Status: ${orbitDragUnlocked ? 'Owned' : 'Locked'}`,
+      note: 'Unlock dragging for the orbiting icons around the center logo.',
+      onClick: orbitDragUnlocked ? () => {} : onBuyOrbitDragUnlock,
+      disabled: !orbitDragUnlocked && currentBalance < ORBIT_DRAG_COST,
+      highlighted: !orbitDragUnlocked && currentBalance >= ORBIT_DRAG_COST,
+      iconSrc: bitcoinLogo,
+      iconAlt: 'Orbit drag unlock',
+      toggleValue: orbitDragEnabled,
+      onToggle: orbitDragUnlocked ? onToggleOrbitDragEnabled : undefined,
+      toggleLabel: orbitDragEnabled ? 'Enabled' : 'Disabled',
+    },
+    {
+      key: 'center-logo-drag-unlock',
+      name: 'Center Logo Dragging',
+      cost: CENTER_LOGO_DRAG_COST,
+      ownedLabel: `Status: ${centerLogoDragUnlocked ? 'Owned' : orbitDragUnlocked ? 'Locked' : 'Requires Orbit Dragging'}`,
+      note: 'Unlock dragging for the center logo so the whole orbit can be repositioned.',
+      onClick: centerLogoDragUnlocked ? () => {} : onBuyCenterLogoDragUnlock,
+      disabled: !centerLogoDragUnlocked && (!orbitDragUnlocked || currentBalance < CENTER_LOGO_DRAG_COST),
+      highlighted: !centerLogoDragUnlocked && orbitDragUnlocked && currentBalance >= CENTER_LOGO_DRAG_COST,
+      iconSrc: logo,
+      iconAlt: 'Center logo drag unlock',
+      toggleValue: centerLogoDragEnabled,
+      onToggle: centerLogoDragUnlocked ? onToggleCenterLogoDragEnabled : undefined,
+      toggleLabel: centerLogoDragEnabled ? 'Enabled' : 'Disabled',
+    },
+  ];
+
   return (
     <section className="store-card">
       <p className="store-label">Doge Store</p>
@@ -287,6 +371,15 @@ export function StoreView({
         <h2 className="store-section-title">Skins</h2>
         <div className="upgrade-grid">
           {skinCards.map(({ key, ...card }) => (
+            <UpgradeCard key={key} {...card} />
+          ))}
+        </div>
+      </section>
+
+      <section className="store-section">
+        <h2 className="store-section-title">Extras</h2>
+        <div className="upgrade-grid">
+          {extraCards.map(({ key, ...card }) => (
             <UpgradeCard key={key} {...card} />
           ))}
         </div>

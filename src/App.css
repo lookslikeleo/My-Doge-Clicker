@@ -182,14 +182,19 @@
   border: none;
   background: transparent;
   padding: 0;
-  cursor: grab;
+  cursor: pointer;
   outline: none;
   -webkit-tap-highlight-color: transparent;
-  touch-action: none;
+  touch-action: manipulation;
   user-select: none;
 }
 
-.logo-button:active {
+.logo-button-draggable {
+  cursor: grab;
+  touch-action: none;
+}
+
+.logo-button-draggable:active {
   cursor: grabbing;
 }
 
@@ -218,12 +223,15 @@
 .moon-orbit {
   position: absolute;
   pointer-events: auto;
-  cursor: grab;
-  touch-action: none;
   will-change: transform;
 }
 
-.moon-orbit:active {
+.moon-orbit-draggable {
+  cursor: grab;
+  touch-action: none;
+}
+
+.moon-orbit-draggable:active {
   cursor: grabbing;
 }
 
@@ -467,6 +475,52 @@
   color: #edf2ff;
   font-weight: 700;
   font-size: 0.9rem;
+}
+
+.upgrade-toggle-row {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+}
+
+.upgrade-toggle-label {
+  color: #edf2ff;
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.upgrade-toggle {
+  width: 48px;
+  height: 28px;
+  border-radius: 999px;
+  background: rgba(125, 136, 160, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  padding: 3px;
+  box-sizing: border-box;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.upgrade-toggle-on {
+  background: rgba(120, 240, 167, 0.72);
+  border-color: rgba(120, 240, 167, 0.82);
+}
+
+.upgrade-toggle-thumb {
+  display: block;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #f7fbff;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.28);
+  transform: translateX(0);
+  transition: transform 0.2s ease;
+}
+
+.upgrade-toggle-on .upgrade-toggle-thumb {
+  transform: translateX(20px);
 }
 
 .stats-label {

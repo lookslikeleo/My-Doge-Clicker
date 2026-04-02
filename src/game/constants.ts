@@ -9,6 +9,10 @@ export const MINING_PUP_3_COUNT_COOKIE = 'doge_mining_pup_3_count';
 export const SHARPER_CLICKER_3_COUNT_COOKIE = 'doge_sharper_clicker_3_count';
 export const CATCOIN_SKIN_OWNED_COOKIE = 'doge_catcoin_skin_owned';
 export const MARK_SKIN_OWNED_COOKIE = 'doge_mark_skin_owned';
+export const ORBIT_DRAG_UNLOCKED_COOKIE = 'doge_orbit_drag_unlocked';
+export const CENTER_LOGO_DRAG_UNLOCKED_COOKIE = 'doge_center_logo_drag_unlocked';
+export const ORBIT_DRAG_ENABLED_COOKIE = 'doge_orbit_drag_enabled';
+export const CENTER_LOGO_DRAG_ENABLED_COOKIE = 'doge_center_logo_drag_enabled';
 export const SELECTED_SKIN_COOKIE = 'doge_selected_skin';
 export const LEGACY_AUTO_CLICKER_COUNT_COOKIE = 'doge_auto_clicker_count';
 
@@ -26,6 +30,8 @@ export const SHARPER_CLICKER_3_COST = 10000;
 export const MINING_PUP_3_COST = 10000;
 export const CATCOIN_SKIN_COST = 5000;
 export const MARK_SKIN_COST = 100000;
+export const ORBIT_DRAG_COST = 9999;
+export const CENTER_LOGO_DRAG_COST = 99999;
 
 export const UPGRADE_COST_MULTIPLIER = 1.16;
 export const UPGRADE_POWER_MULTIPLIER = 1.1;

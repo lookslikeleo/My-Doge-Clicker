@@ -4,6 +4,9 @@ import {
   BALANCE_COOKIE,
   CATCOIN_SKIN_COST,
   CATCOIN_SKIN_OWNED_COOKIE,
+  CENTER_LOGO_DRAG_COST,
+  CENTER_LOGO_DRAG_ENABLED_COOKIE,
+  CENTER_LOGO_DRAG_UNLOCKED_COOKIE,
   CLICK_UPGRADE_COST,
   CLICK_UPGRADE_COUNT_COOKIE,
   COOKIE_SYNC_MS,
@@ -21,6 +24,9 @@ import {
   MINING_PUP_2_COUNT_COOKIE,
   MINING_PUP_3_COST,
   MINING_PUP_3_COUNT_COOKIE,
+  ORBIT_DRAG_COST,
+  ORBIT_DRAG_ENABLED_COOKIE,
+  ORBIT_DRAG_UNLOCKED_COOKIE,
   PASSIVE_TICK_MS,
   PASSIVE_UPGRADE_COST,
   PASSIVE_UPGRADE_COUNT_COOKIE,
@@ -67,6 +73,14 @@ export function useDogeGame() {
   );
   const [catcoinSkinOwned, setCatcoinSkinOwned] = useState(() => readNumberCookie(CATCOIN_SKIN_OWNED_COOKIE, 0) >= 1);
   const [markSkinOwned, setMarkSkinOwned] = useState(() => readNumberCookie(MARK_SKIN_OWNED_COOKIE, 0) >= 1);
+  const [orbitDragUnlocked, setOrbitDragUnlocked] = useState(() => readNumberCookie(ORBIT_DRAG_UNLOCKED_COOKIE, 0) >= 1);
+  const [orbitDragEnabled, setOrbitDragEnabled] = useState(() => readNumberCookie(ORBIT_DRAG_ENABLED_COOKIE, 0) >= 1);
+  const [centerLogoDragUnlocked, setCenterLogoDragUnlocked] = useState(() =>
+    readNumberCookie(CENTER_LOGO_DRAG_UNLOCKED_COOKIE, 0) >= 1,
+  );
+  const [centerLogoDragEnabled, setCenterLogoDragEnabled] = useState(() =>
+    readNumberCookie(CENTER_LOGO_DRAG_ENABLED_COOKIE, 0) >= 1,
+  );
   const [selectedSkin, setSelectedSkin] = useState<CenterSkin>(() => readSelectedSkin());
   const [rewardBursts, setRewardBursts] = useState<RewardBurst[]>([]);
   const [manualGenerations, setManualGenerations] = useState<ManualGeneration[]>([]);
@@ -218,6 +232,22 @@ export function useDogeGame() {
   }, [markSkinOwned]);
 
   useEffect(() => {
+    writeNumberCookie(ORBIT_DRAG_UNLOCKED_COOKIE, orbitDragUnlocked ? 1 : 0);
+  }, [orbitDragUnlocked]);
+
+  useEffect(() => {
+    writeNumberCookie(ORBIT_DRAG_ENABLED_COOKIE, orbitDragEnabled ? 1 : 0);
+  }, [orbitDragEnabled]);
+
+  useEffect(() => {
+    writeNumberCookie(CENTER_LOGO_DRAG_UNLOCKED_COOKIE, centerLogoDragUnlocked ? 1 : 0);
+  }, [centerLogoDragUnlocked]);
+
+  useEffect(() => {
+    writeNumberCookie(CENTER_LOGO_DRAG_ENABLED_COOKIE, centerLogoDragEnabled ? 1 : 0);
+  }, [centerLogoDragEnabled]);
+
+  useEffect(() => {
     writeStringCookie(SELECTED_SKIN_COOKIE, selectedSkin);
   }, [selectedSkin]);
 
@@ -235,6 +265,10 @@ export function useDogeGame() {
       const cookieMiningPup3Count = Math.max(0, Math.round(readNumberCookie(MINING_PUP_3_COUNT_COOKIE, 0)));
       const cookieCatcoinSkinOwned = readNumberCookie(CATCOIN_SKIN_OWNED_COOKIE, 0) >= 1;
       const cookieMarkSkinOwned = readNumberCookie(MARK_SKIN_OWNED_COOKIE, 0) >= 1;
+      const cookieOrbitDragUnlocked = readNumberCookie(ORBIT_DRAG_UNLOCKED_COOKIE, 0) >= 1;
+      const cookieOrbitDragEnabled = readNumberCookie(ORBIT_DRAG_ENABLED_COOKIE, 0) >= 1;
+      const cookieCenterLogoDragUnlocked = readNumberCookie(CENTER_LOGO_DRAG_UNLOCKED_COOKIE, 0) >= 1;
+      const cookieCenterLogoDragEnabled = readNumberCookie(CENTER_LOGO_DRAG_ENABLED_COOKIE, 0) >= 1;
       const cookieSelectedSkin = readSelectedSkin();
 
       if (cookieBalance !== roundToTwo(currentBalance)) {
@@ -273,6 +307,22 @@ export function useDogeGame() {
         setMarkSkinOwned(cookieMarkSkinOwned);
       }
 
+      if (cookieOrbitDragUnlocked !== orbitDragUnlocked) {
+        setOrbitDragUnlocked(cookieOrbitDragUnlocked);
+      }
+
+      if (cookieOrbitDragEnabled !== orbitDragEnabled) {
+        setOrbitDragEnabled(cookieOrbitDragEnabled);
+      }
+
+      if (cookieCenterLogoDragUnlocked !== centerLogoDragUnlocked) {
+        setCenterLogoDragUnlocked(cookieCenterLogoDragUnlocked);
+      }
+
+      if (cookieCenterLogoDragEnabled !== centerLogoDragEnabled) {
+        setCenterLogoDragEnabled(cookieCenterLogoDragEnabled);
+      }
+
       if (cookieSelectedSkin !== selectedSkin) {
         setSelectedSkin(cookieSelectedSkin);
       }
@@ -283,9 +333,13 @@ export function useDogeGame() {
     catcoinSkinOwned,
     clickUpgradeCount,
     currentBalance,
+    centerLogoDragUnlocked,
+    centerLogoDragEnabled,
     markSkinOwned,
     miningPup2Count,
     miningPup3Count,
+    orbitDragUnlocked,
+    orbitDragEnabled,
     passiveUpgradeCount,
     selectedSkin,
     sharperClicker2Count,
@@ -419,6 +473,42 @@ export function useDogeGame() {
     setSelectedSkin('mark');
   };
 
+  const buyOrbitDragUnlock = () => {
+    if (orbitDragUnlocked || currentBalance < ORBIT_DRAG_COST) {
+      return;
+    }
+
+    setCurrentBalance((balance) => roundToTwo(balance - ORBIT_DRAG_COST));
+    setOrbitDragUnlocked(true);
+    setOrbitDragEnabled(true);
+  };
+
+  const buyCenterLogoDragUnlock = () => {
+    if (centerLogoDragUnlocked || !orbitDragUnlocked || currentBalance < CENTER_LOGO_DRAG_COST) {
+      return;
+    }
+
+    setCurrentBalance((balance) => roundToTwo(balance - CENTER_LOGO_DRAG_COST));
+    setCenterLogoDragUnlocked(true);
+    setCenterLogoDragEnabled(true);
+  };
+
+  const toggleOrbitDragEnabled = () => {
+    if (!orbitDragUnlocked) {
+      return;
+    }
+
+    setOrbitDragEnabled((value) => !value);
+  };
+
+  const toggleCenterLogoDragEnabled = () => {
+    if (!centerLogoDragUnlocked) {
+      return;
+    }
+
+    setCenterLogoDragEnabled((value) => !value);
+  };
+
   const equipDefaultSkin = () => setSelectedSkin('doge');
 
   const equipCatcoinSkin = () => {
@@ -443,6 +533,10 @@ export function useDogeGame() {
     miningPup3Count,
     catcoinSkinOwned,
     markSkinOwned,
+    orbitDragUnlocked,
+    orbitDragEnabled,
+    centerLogoDragUnlocked,
+    centerLogoDragEnabled,
     selectedSkin,
     rewardBursts,
     totalDogePerSecond,
@@ -476,6 +570,10 @@ export function useDogeGame() {
     addDeveloperDoge,
     buyCatcoinSkin,
     buyMarkSkin,
+    buyOrbitDragUnlock,
+    buyCenterLogoDragUnlock,
+    toggleOrbitDragEnabled,
+    toggleCenterLogoDragEnabled,
     equipDefaultSkin,
     equipCatcoinSkin,
     equipMarkSkin,

@@ -23,6 +23,8 @@ type DashboardViewProps = {
   miningPup2Moons: OrbitMoon[];
   miningPup3Moons: OrbitMoon[];
   rewardBursts: RewardBurst[];
+  orbitDragUnlocked: boolean;
+  centerLogoDragUnlocked: boolean;
   onGenerate: MouseEventHandler<HTMLButtonElement>;
   onDeveloperReward: () => void;
 };
@@ -31,23 +33,19 @@ type MoonOrbitProps = {
   moons: OrbitMoon[];
   imageSrc: string;
   className?: string;
+  dragUnlocked: boolean;
 };
 
 type MoonMotionState = {
-  angle: number;
-  radius: number;
+  angleOffset: number;
+  radiusOffset: number;
   isDragging: boolean;
 };
 
-const normalizeAngle = (angle: number) => {
-  const normalized = angle % 360;
-  return normalized <= -180 ? normalized + 360 : normalized > 180 ? normalized - 360 : normalized;
-};
+const ORBIT_SPEED_MULTIPLIER = 0.325;
+const RETURN_EASE_MULTIPLIER = 0.05;
 
-const ORBIT_SPEED_MULTIPLIER = 0.65;
-const RETURN_EASE_MULTIPLIER = 0.6;
-
-function MoonOrbit({ moons, imageSrc, className = 'moon-orbit' }: MoonOrbitProps) {
+function MoonOrbit({ moons, imageSrc, className = 'moon-orbit', dragUnlocked }: MoonOrbitProps) {
   const layerRef = useRef<HTMLDivElement | null>(null);
   const frameRef = useRef<number | null>(null);
   const lastFrameTimeRef = useRef<number | null>(null);
@@ -60,8 +58,8 @@ function MoonOrbit({ moons, imageSrc, className = 'moon-orbit' }: MoonOrbitProps
       moons.map((moon) => [
         moon.id,
         {
-          angle: moon.angle,
-          radius: moon.radius,
+          angleOffset: 0,
+          radiusOffset: 0,
           isDragging: false,
         },
       ]),
@@ -79,8 +77,8 @@ function MoonOrbit({ moons, imageSrc, className = 'moon-orbit' }: MoonOrbitProps
         nextStates[moon.id] = existingState
           ? existingState
           : {
-            angle: moon.angle,
-            radius: moon.radius,
+            angleOffset: 0,
+            radiusOffset: 0,
             isDragging: false,
           };
       });
@@ -102,8 +100,8 @@ function MoonOrbit({ moons, imageSrc, className = 'moon-orbit' }: MoonOrbitProps
 
         moons.forEach((moon) => {
           const currentState = currentStates[moon.id] ?? {
-            angle: moon.angle,
-            radius: moon.radius,
+            angleOffset: 0,
+            radiusOffset: 0,
             isDragging: false,
           };
           const orbitSpeed = (360 / moon.duration) * ORBIT_SPEED_MULTIPLIER;
@@ -115,14 +113,11 @@ function MoonOrbit({ moons, imageSrc, className = 'moon-orbit' }: MoonOrbitProps
             return;
           }
 
-          const angleDifference = normalizeAngle(nextTargetAngle - currentState.angle);
           const easeStrength = Math.min(1, deltaSeconds * RETURN_EASE_MULTIPLIER);
-          const nextAngle = currentState.angle + angleDifference * easeStrength;
-          const nextRadius = currentState.radius + (moon.radius - currentState.radius) * easeStrength;
           nextStates[moon.id] = {
             ...currentState,
-            angle: nextAngle,
-            radius: nextRadius,
+            angleOffset: currentState.angleOffset + (0 - currentState.angleOffset) * easeStrength,
+            radiusOffset: currentState.radiusOffset + (0 - currentState.radiusOffset) * easeStrength,
           };
           changed = true;
         });
@@ -154,28 +149,34 @@ function MoonOrbit({ moons, imageSrc, className = 'moon-orbit' }: MoonOrbitProps
     const centerY = layerRect.top + layerRect.height / 2;
     const deltaX = clientX - centerX;
     const deltaY = clientY - centerY;
-    const nextRadius = Math.hypot(deltaX, deltaY);
-    const nextAngle = (Math.atan2(deltaY, deltaX) * 180) / Math.PI;
+    const absoluteRadius = Math.hypot(deltaX, deltaY);
+    const absoluteAngle = (Math.atan2(deltaY, deltaX) * 180) / Math.PI;
+    const baseAngle = orbitTargetsRef.current[moonId] ?? 0;
+    const baseRadius = moons.find((moon) => moon.id === moonId)?.radius ?? absoluteRadius;
 
     setMoonStates((currentStates) => ({
       ...currentStates,
       [moonId]: {
-        ...(currentStates[moonId] ?? { angle: nextAngle, radius: nextRadius }),
-        angle: nextAngle,
-        radius: nextRadius,
+        ...(currentStates[moonId] ?? { angleOffset: 0, radiusOffset: 0 }),
+        angleOffset: absoluteAngle - baseAngle,
+        radiusOffset: absoluteRadius - baseRadius,
         isDragging: true,
       },
     }));
   };
 
   const handlePointerDown = (moonId: string) => (event: ReactPointerEvent<HTMLSpanElement>) => {
+    if (!dragUnlocked) {
+      return;
+    }
+
     dragIdRef.current = moonId;
     event.currentTarget.setPointerCapture(event.pointerId);
     updateMoonFromPointer(moonId, event.clientX, event.clientY);
   };
 
   const handlePointerMove = (moonId: string) => (event: ReactPointerEvent<HTMLSpanElement>) => {
-    if (dragIdRef.current !== moonId) {
+    if (!dragUnlocked || dragIdRef.current !== moonId) {
       return;
     }
 
@@ -183,7 +184,7 @@ function MoonOrbit({ moons, imageSrc, className = 'moon-orbit' }: MoonOrbitProps
   };
 
   const handlePointerEnd = (moonId: string) => (event: ReactPointerEvent<HTMLSpanElement>) => {
-    if (dragIdRef.current !== moonId) {
+    if (!dragUnlocked || dragIdRef.current !== moonId) {
       return;
     }
 
@@ -195,7 +196,7 @@ function MoonOrbit({ moons, imageSrc, className = 'moon-orbit' }: MoonOrbitProps
     setMoonStates((currentStates) => ({
       ...currentStates,
       [moonId]: {
-        ...(currentStates[moonId] ?? { angle: 0, radius: 0 }),
+        ...(currentStates[moonId] ?? { angleOffset: 0, radiusOffset: 0 }),
         isDragging: false,
       },
     }));
@@ -203,18 +204,19 @@ function MoonOrbit({ moons, imageSrc, className = 'moon-orbit' }: MoonOrbitProps
 
   return (
     <div ref={layerRef} className="moon-orbit-layer">
-      {moons.map((moon) => (
+      {moons.map((moon) => {
+        const moonState = moonStates[moon.id];
+        const displayAngle = (orbitTargetsRef.current[moon.id] ?? moon.angle) + (moonState?.angleOffset ?? 0);
+        const displayRadius = moon.radius + (moonState?.radiusOffset ?? 0);
+
+        return (
         <span
           key={moon.id}
-          className={className}
+          className={`${className}${dragUnlocked ? ' moon-orbit-draggable' : ''}`}
           style={{
             left: '50%',
             top: '50%',
-            transform: `translate(-50%, -50%) translate(${(
-              moonStates[moon.id]?.radius ?? moon.radius
-            ) * Math.cos(((moonStates[moon.id]?.angle ?? moon.angle) * Math.PI) / 180)}px, ${(
-              moonStates[moon.id]?.radius ?? moon.radius
-            ) * Math.sin(((moonStates[moon.id]?.angle ?? moon.angle) * Math.PI) / 180)}px)`,
+            transform: `translate(-50%, -50%) translate(${displayRadius * Math.cos((displayAngle * Math.PI) / 180)}px, ${displayRadius * Math.sin((displayAngle * Math.PI) / 180)}px)`,
             ['--moon-size' as string]: `${moon.size}px`,
           }}
           onPointerDown={handlePointerDown(moon.id)}
@@ -224,7 +226,8 @@ function MoonOrbit({ moons, imageSrc, className = 'moon-orbit' }: MoonOrbitProps
         >
           <img src={imageSrc} className="moon-logo spin" alt="" draggable={false} />
         </span>
-      ))}
+        );
+      })}
     </div>
   );
 }
@@ -238,6 +241,8 @@ export function DashboardView({
   miningPup2Moons,
   miningPup3Moons,
   rewardBursts,
+  orbitDragUnlocked,
+  centerLogoDragUnlocked,
   onGenerate,
   onDeveloperReward,
 }: DashboardViewProps) {
@@ -267,6 +272,10 @@ export function DashboardView({
       : 'Doge logo';
 
   const handleLogoPointerDown = useCallback((event: ReactPointerEvent<HTMLButtonElement>) => {
+    if (!centerLogoDragUnlocked) {
+      return;
+    }
+
     orbitDragRef.current = {
       startX: event.clientX,
       startY: event.clientY,
@@ -277,7 +286,7 @@ export function DashboardView({
     };
     suppressLogoClickRef.current = false;
     event.preventDefault();
-  }, [orbitOffset.x, orbitOffset.y]);
+  }, [centerLogoDragUnlocked, orbitOffset.x, orbitOffset.y]);
 
   useEffect(() => {
     const handlePointerMove = (event: PointerEvent) => {
@@ -340,9 +349,19 @@ export function DashboardView({
         style={{ transform: `translate(${orbitOffset.x}px, ${orbitOffset.y}px)` }}
       >
         <div className="moon-layer" aria-hidden="true">
-          <MoonOrbit moons={miningPupMoons} imageSrc={MOON_LOGO_URL} />
-          <MoonOrbit moons={miningPup2Moons} imageSrc={etheruemLogo} className="moon-orbit moon-orbit-tier-two" />
-          <MoonOrbit moons={miningPup3Moons} imageSrc={bitcoinLogo} className="moon-orbit moon-orbit-tier-three" />
+          <MoonOrbit moons={miningPupMoons} imageSrc={MOON_LOGO_URL} dragUnlocked={orbitDragUnlocked} />
+          <MoonOrbit
+            moons={miningPup2Moons}
+            imageSrc={etheruemLogo}
+            className="moon-orbit moon-orbit-tier-two"
+            dragUnlocked={orbitDragUnlocked}
+          />
+          <MoonOrbit
+            moons={miningPup3Moons}
+            imageSrc={bitcoinLogo}
+            className="moon-orbit moon-orbit-tier-three"
+            dragUnlocked={orbitDragUnlocked}
+          />
         </div>
         <div className="logo-feedback-layer" aria-hidden="true">
           {rewardBursts.map((burst) => (
@@ -352,12 +371,12 @@ export function DashboardView({
 
         <button
           type="button"
-          className="logo-button"
+          className={`logo-button${centerLogoDragUnlocked ? ' logo-button-draggable' : ''}`}
           onClick={handleGenerateClick}
           onPointerDown={handleLogoPointerDown}
           aria-label="Generate DogeCoin"
         >
-          <img src={centerLogoSrc} className={centerLogoClassName} alt={centerLogoAlt} />
+          <img src={centerLogoSrc} className={centerLogoClassName} alt={centerLogoAlt} draggable={false} />
         </button>
       </div>
 
