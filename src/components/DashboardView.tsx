@@ -64,6 +64,15 @@ export function DashboardView({
     : selectedSkin === 'mark'
       ? markLogo
       : logo;
+  const isPictureSkin = selectedSkin === 'catcoin' || selectedSkin === 'mark';
+  const centerLogoClassName = isPictureSkin
+    ? 'logo spin center-logo center-logo-picture'
+    : 'logo spin center-logo';
+  const centerLogoAlt = selectedSkin === 'catcoin'
+    ? 'CatCoin skin'
+    : selectedSkin === 'mark'
+      ? 'Mark skin'
+      : 'Doge logo';
 
   return (
     <>
@@ -73,6 +82,11 @@ export function DashboardView({
           <MoonOrbit moons={miningPup2Moons} imageSrc={etheruemLogo} className="moon-orbit moon-orbit-tier-two" />
           <MoonOrbit moons={miningPup3Moons} imageSrc={bitcoinLogo} className="moon-orbit moon-orbit-tier-three" />
         </div>
+        <div className="logo-feedback-layer" aria-hidden="true">
+          {rewardBursts.map((burst) => (
+            <span key={`pulse-${burst.id}`} className="logo-pulse-ring" />
+          ))}
+        </div>
 
         <button
           type="button"
@@ -80,7 +94,7 @@ export function DashboardView({
           onClick={onGenerate}
           aria-label="Generate DogeCoin"
         >
-          <img src={centerLogoSrc} className="logo spin center-logo" alt="logo" />
+          <img src={centerLogoSrc} className={centerLogoClassName} alt={centerLogoAlt} />
         </button>
       </div>
 

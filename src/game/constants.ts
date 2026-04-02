@@ -27,7 +27,7 @@ export const MINING_PUP_3_COST = 10000;
 export const CATCOIN_SKIN_COST = 5000;
 export const MARK_SKIN_COST = 100000;
 
-export const UPGRADE_COST_MULTIPLIER = 1.25;
+export const UPGRADE_COST_MULTIPLIER = 1.16;
 export const UPGRADE_POWER_MULTIPLIER = 1.1;
 export const TIER_TWO_BOOST_PER_PURCHASE = 0.35;
 export const TIER_THREE_BOOST_PER_PURCHASE = 0.5;
