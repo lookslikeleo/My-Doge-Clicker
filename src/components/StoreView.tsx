@@ -13,6 +13,7 @@ type UpgradeCardProps = {
   note: string;
   onClick: () => void;
   disabled: boolean;
+  highlighted?: boolean;
   iconSrc?: string;
   iconAlt?: string;
 };
@@ -64,13 +65,14 @@ function UpgradeCard({
   note,
   onClick,
   disabled,
+  highlighted = false,
   iconSrc,
   iconAlt,
 }: UpgradeCardProps) {
   return (
     <button
       type="button"
-      className="upgrade-card"
+      className={`upgrade-card${highlighted ? ' upgrade-card-buyable' : ''}`}
       onClick={onClick}
       disabled={disabled}
       aria-label={name}
@@ -128,79 +130,92 @@ export function StoreView({
   return (
     <section className="store-card">
       <p className="store-label">Doge Store</p>
-      <h1 className="store-title">Upgrade your generator</h1>
 
       <section className="store-section">
         <h2 className="store-section-title">Upgrades</h2>
-        <div className="upgrade-grid">
-          <UpgradeCard
-            name="Turbo Paw"
-            cost={nextClickUpgradeCost}
-            ownedLabel={`Owned: ${clickUpgradeCount}`}
-            note={`Next bonus: +${nextClickUpgradeGain.toFixed(2)} DOGE/click`}
-            onClick={onBuyClickUpgrade}
-            disabled={currentBalance < nextClickUpgradeCost}
-            iconSrc="https://upload.wikimedia.org/wikipedia/commons/c/c0/Dog_Paw_Print.png"
-            iconAlt="Dog paw print"
-          />
-          <UpgradeCard
-            name="Doge Den"
-            cost={nextPassiveUpgradeCost}
-            ownedLabel={`Owned: ${passiveUpgradeCount}`}
-            note={`Next bonus: +${nextPassiveUpgradeGain.toFixed(2)} DOGE/sec`}
-            onClick={onBuyPassiveUpgrade}
-            disabled={currentBalance < nextPassiveUpgradeCost}
-            iconSrc={logo}
-            iconAlt="Doge logo"
-          />
-          {sharperClicker2Unlocked ? (
+        <div className="upgrade-group">
+          <h3 className="upgrade-group-title">Doge Per Click</h3>
+          <div className="upgrade-grid">
             <UpgradeCard
-              name="Bark Booster"
-              cost={nextSharperClicker2Cost}
-              ownedLabel={`Owned: ${sharperClicker2Count}`}
-              note={`Next bonus: +${nextSharperClicker2Gain.toFixed(2)} DOGE/click`}
-              onClick={onBuySharperClicker2Upgrade}
-              disabled={currentBalance < nextSharperClicker2Cost}
-              iconSrc="https://cdn-icons-png.flaticon.com/512/5869/5869167.png"
-              iconAlt="Bark icon"
+              name="Turbo Paw"
+              cost={nextClickUpgradeCost}
+              ownedLabel={`Owned: ${clickUpgradeCount}`}
+              note={`Next bonus: +${nextClickUpgradeGain.toFixed(2)} DOGE/click`}
+              onClick={onBuyClickUpgrade}
+              disabled={currentBalance < nextClickUpgradeCost}
+              highlighted={currentBalance >= nextClickUpgradeCost}
+              iconSrc="https://upload.wikimedia.org/wikipedia/commons/c/c0/Dog_Paw_Print.png"
+              iconAlt="Dog paw print"
             />
-          ) : null}
-          {miningPup2Unlocked ? (
+            {sharperClicker2Unlocked ? (
+              <UpgradeCard
+                name="Bark Booster"
+                cost={nextSharperClicker2Cost}
+                ownedLabel={`Owned: ${sharperClicker2Count}`}
+                note={`Next bonus: +${nextSharperClicker2Gain.toFixed(2)} DOGE/click`}
+                onClick={onBuySharperClicker2Upgrade}
+                disabled={currentBalance < nextSharperClicker2Cost}
+                highlighted={currentBalance >= nextSharperClicker2Cost}
+                iconSrc="https://cdn-icons-png.flaticon.com/512/5869/5869167.png"
+                iconAlt="Bark icon"
+              />
+            ) : null}
+            {sharperClicker3Unlocked ? (
+              <UpgradeCard
+                name="Zoomies Engine"
+                cost={nextSharperClicker3Cost}
+                ownedLabel={`Owned: ${sharperClicker3Count}`}
+                note={`Next bonus: +${nextSharperClicker3Gain.toFixed(2)} DOGE/click`}
+                onClick={onBuySharperClicker3Upgrade}
+                disabled={currentBalance < nextSharperClicker3Cost}
+                highlighted={currentBalance >= nextSharperClicker3Cost}
+                iconSrc="https://cdn-icons-png.flaticon.com/512/91/91531.png"
+                iconAlt="Running dog icon"
+              />
+            ) : null}
+          </div>
+        </div>
+        <div className="upgrade-group">
+          <h3 className="upgrade-group-title">Doge Per Second</h3>
+          <div className="upgrade-grid">
             <UpgradeCard
-              name="Kennel Crew"
-              cost={nextMiningPup2Cost}
-              ownedLabel={`Owned: ${miningPup2Count}`}
-              note={`Next bonus: +${nextMiningPup2Gain.toFixed(2)} DOGE/sec`}
-              onClick={onBuyMiningPup2Upgrade}
-              disabled={currentBalance < nextMiningPup2Cost}
-              iconSrc={etheruemLogo}
-              iconAlt="Ethereum icon"
+              name="Doge Den"
+              cost={nextPassiveUpgradeCost}
+              ownedLabel={`Owned: ${passiveUpgradeCount}`}
+              note={`Next bonus: +${nextPassiveUpgradeGain.toFixed(2)} DOGE/sec`}
+              onClick={onBuyPassiveUpgrade}
+              disabled={currentBalance < nextPassiveUpgradeCost}
+              highlighted={currentBalance >= nextPassiveUpgradeCost}
+              iconSrc={logo}
+              iconAlt="Doge logo"
             />
-          ) : null}
-          {sharperClicker3Unlocked ? (
-            <UpgradeCard
-              name="Zoomies Engine"
-              cost={nextSharperClicker3Cost}
-              ownedLabel={`Owned: ${sharperClicker3Count}`}
-              note={`Next bonus: +${nextSharperClicker3Gain.toFixed(2)} DOGE/click`}
-              onClick={onBuySharperClicker3Upgrade}
-              disabled={currentBalance < nextSharperClicker3Cost}
-              iconSrc="https://cdn-icons-png.flaticon.com/512/91/91531.png"
-              iconAlt="Running dog icon"
-            />
-          ) : null}
-          {miningPup3Unlocked ? (
-            <UpgradeCard
-              name="Moonpack Alpha"
-              cost={nextMiningPup3Cost}
-              ownedLabel={`Owned: ${miningPup3Count}`}
-              note={`Next bonus: +${nextMiningPup3Gain.toFixed(2)} DOGE/sec`}
-              onClick={onBuyMiningPup3Upgrade}
-              disabled={currentBalance < nextMiningPup3Cost}
-              iconSrc={bitcoinLogo}
-              iconAlt="Bitcoin icon"
-            />
-          ) : null}
+            {miningPup2Unlocked ? (
+              <UpgradeCard
+                name="Kennel Crew"
+                cost={nextMiningPup2Cost}
+                ownedLabel={`Owned: ${miningPup2Count}`}
+                note={`Next bonus: +${nextMiningPup2Gain.toFixed(2)} DOGE/sec`}
+                onClick={onBuyMiningPup2Upgrade}
+                disabled={currentBalance < nextMiningPup2Cost}
+                highlighted={currentBalance >= nextMiningPup2Cost}
+                iconSrc={etheruemLogo}
+                iconAlt="Ethereum icon"
+              />
+            ) : null}
+            {miningPup3Unlocked ? (
+              <UpgradeCard
+                name="Moonpack Alpha"
+                cost={nextMiningPup3Cost}
+                ownedLabel={`Owned: ${miningPup3Count}`}
+                note={`Next bonus: +${nextMiningPup3Gain.toFixed(2)} DOGE/sec`}
+                onClick={onBuyMiningPup3Upgrade}
+                disabled={currentBalance < nextMiningPup3Cost}
+                highlighted={currentBalance >= nextMiningPup3Cost}
+                iconSrc={bitcoinLogo}
+                iconAlt="Bitcoin icon"
+              />
+            ) : null}
+          </div>
         </div>
       </section>
 
@@ -224,6 +239,7 @@ export function StoreView({
             note="Replace the center spinner with the CatCoin image."
             onClick={catcoinSkinOwned ? onEquipCatcoinSkin : onBuyCatcoinSkin}
             disabled={catcoinSkinOwned ? selectedSkin === 'catcoin' : currentBalance < CATCOIN_SKIN_COST}
+            highlighted={!catcoinSkinOwned && currentBalance >= CATCOIN_SKIN_COST}
             iconSrc={catcoinLogo}
             iconAlt="CatCoin skin preview"
           />
@@ -234,6 +250,7 @@ export function StoreView({
             note="Replace the center spinner with the Mark image."
             onClick={markSkinOwned ? onEquipMarkSkin : onBuyMarkSkin}
             disabled={markSkinOwned ? selectedSkin === 'mark' : currentBalance < MARK_SKIN_COST}
+            highlighted={!markSkinOwned && currentBalance >= MARK_SKIN_COST}
             iconSrc={markLogo}
             iconAlt="Mark skin preview"
           />

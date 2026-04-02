@@ -15,7 +15,6 @@ function App() {
       <Topbar
         activeView={activeView}
         onViewChange={setActiveView}
-        onDeveloperReward={game.addDeveloperDoge}
       />
 
       <main className="main">
@@ -30,6 +29,7 @@ function App() {
             miningPup3Moons={game.miningPup3Moons}
             rewardBursts={game.rewardBursts}
             onGenerate={game.handleGenerateDogeCoin}
+            onDeveloperReward={game.addDeveloperDoge}
           />
         ) : (
           <StoreView

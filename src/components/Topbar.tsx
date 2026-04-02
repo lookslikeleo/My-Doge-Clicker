@@ -3,13 +3,11 @@ import { View } from '../game/types';
 type TopbarProps = {
   activeView: View;
   onViewChange: (view: View) => void;
-  onDeveloperReward: () => void;
 };
 
-export function Topbar({ activeView, onViewChange, onDeveloperReward }: TopbarProps) {
+export function Topbar({ activeView, onViewChange }: TopbarProps) {
   return (
     <header className="topbar">
-      <h3>Doge Menu</h3>
       <ul>
         <li>
           <button
@@ -27,15 +25,6 @@ export function Topbar({ activeView, onViewChange, onDeveloperReward }: TopbarPr
             onClick={() => onViewChange('store')}
           >
             Store
-          </button>
-        </li>
-        <li>
-          <button
-            type="button"
-            className="menu-button developer-button"
-            onClick={onDeveloperReward}
-          >
-            Developer +100000
           </button>
         </li>
       </ul>

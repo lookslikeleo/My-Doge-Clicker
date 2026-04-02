@@ -17,6 +17,7 @@ type DashboardViewProps = {
   miningPup3Moons: OrbitMoon[];
   rewardBursts: RewardBurst[];
   onGenerate: MouseEventHandler<HTMLButtonElement>;
+  onDeveloperReward: () => void;
 };
 
 type MoonOrbitProps = {
@@ -58,6 +59,7 @@ export function DashboardView({
   miningPup3Moons,
   rewardBursts,
   onGenerate,
+  onDeveloperReward,
 }: DashboardViewProps) {
   const centerLogoSrc = selectedSkin === 'catcoin'
     ? catcoinLogo
@@ -115,6 +117,14 @@ export function DashboardView({
           <h2 className="stats-value">{totalDogePerClick.toFixed(2)} DOGE/click</h2>
         </div>
       </section>
+      <button
+        type="button"
+        className="secret-smiley-button"
+        onClick={onDeveloperReward}
+        aria-label="Smiley reward"
+      >
+        :)
+      </button>
 
       {rewardBursts.map((burst) => (
         <span
