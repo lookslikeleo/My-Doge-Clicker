@@ -41,16 +41,10 @@ jobs:
       - name: Build app
         run: npm run build
 
-      - name: Package Pages artifact
-        run: |
-          tar --directory build -cvf github-pages.tar .
-          gzip -f github-pages.tar
-
       - name: Upload Pages artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-pages-artifact@v4
         with:
-          name: github-pages
-          path: github-pages.tar.gz
+          path: build
 
   deploy:
     needs: build
