@@ -158,6 +158,13 @@
 .moon-layer {
   position: absolute;
   inset: 0;
+  z-index: 1;
+}
+
+.moon-orbit-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
 }
 
 .logo-feedback-layer {
@@ -205,22 +212,22 @@
 
 .moon-orbit {
   position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  animation: orbit var(--orbit-duration) linear infinite;
-  transform: rotate(var(--orbit-angle));
+  pointer-events: auto;
+  cursor: grab;
+  touch-action: none;
+  will-change: transform;
 }
 
-.moon-offset {
-  transform: translateX(var(--orbit-radius));
+.moon-orbit:active {
+  cursor: grabbing;
 }
 
 .moon-logo {
   width: var(--moon-size);
   height: var(--moon-size);
   filter: drop-shadow(0 0 8px rgba(240, 185, 11, 0.35));
+  display: block;
+  pointer-events: none;
 }
 
 /* animations */
@@ -240,11 +247,6 @@
 @keyframes spinReverse {
   from { transform: rotate(360deg); }
   to { transform: rotate(0deg); }
-}
-
-@keyframes orbit {
-  from { transform: rotate(var(--orbit-angle)); }
-  to { transform: rotate(calc(var(--orbit-angle) - 360deg)); }
 }
 
 /* link */
