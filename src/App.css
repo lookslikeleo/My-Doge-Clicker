@@ -182,10 +182,15 @@
   border: none;
   background: transparent;
   padding: 0;
-  cursor: pointer;
+  cursor: grab;
   outline: none;
   -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
+  touch-action: none;
+  user-select: none;
+}
+
+.logo-button:active {
+  cursor: grabbing;
 }
 
 .logo-button:focus {

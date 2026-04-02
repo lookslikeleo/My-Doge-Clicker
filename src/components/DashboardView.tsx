@@ -1,6 +1,7 @@
 import {
   MouseEventHandler,
   PointerEvent as ReactPointerEvent,
+  useCallback,
   useEffect,
   useRef,
   useState,
@@ -38,11 +39,22 @@ type MoonMotionState = {
   isDragging: boolean;
 };
 
+const normalizeAngle = (angle: number) => {
+  const normalized = angle % 360;
+  return normalized <= -180 ? normalized + 360 : normalized > 180 ? normalized - 360 : normalized;
+};
+
+const ORBIT_SPEED_MULTIPLIER = 0.65;
+const RETURN_EASE_MULTIPLIER = 0.6;
+
 function MoonOrbit({ moons, imageSrc, className = 'moon-orbit' }: MoonOrbitProps) {
   const layerRef = useRef<HTMLDivElement | null>(null);
   const frameRef = useRef<number | null>(null);
   const lastFrameTimeRef = useRef<number | null>(null);
   const dragIdRef = useRef<string | null>(null);
+  const orbitTargetsRef = useRef<Record<string, number>>(
+    Object.fromEntries(moons.map((moon) => [moon.id, moon.angle])),
+  );
   const [moonStates, setMoonStates] = useState<Record<string, MoonMotionState>>(() => (
     Object.fromEntries(
       moons.map((moon) => [
@@ -59,9 +71,11 @@ function MoonOrbit({ moons, imageSrc, className = 'moon-orbit' }: MoonOrbitProps
   useEffect(() => {
     setMoonStates((currentStates) => {
       const nextStates: Record<string, MoonMotionState> = {};
+      const nextTargets: Record<string, number> = {};
 
       moons.forEach((moon) => {
         const existingState = currentStates[moon.id];
+        nextTargets[moon.id] = orbitTargetsRef.current[moon.id] ?? moon.angle;
         nextStates[moon.id] = existingState
           ? existingState
           : {
@@ -71,6 +85,7 @@ function MoonOrbit({ moons, imageSrc, className = 'moon-orbit' }: MoonOrbitProps
           };
       });
 
+      orbitTargetsRef.current = nextTargets;
       return nextStates;
     });
   }, [moons]);
@@ -91,17 +106,23 @@ function MoonOrbit({ moons, imageSrc, className = 'moon-orbit' }: MoonOrbitProps
             radius: moon.radius,
             isDragging: false,
           };
+          const orbitSpeed = (360 / moon.duration) * ORBIT_SPEED_MULTIPLIER;
+          const nextTargetAngle = (orbitTargetsRef.current[moon.id] ?? moon.angle) - orbitSpeed * deltaSeconds;
+          orbitTargetsRef.current[moon.id] = nextTargetAngle;
 
           if (currentState.isDragging) {
             nextStates[moon.id] = currentState;
             return;
           }
 
-          const orbitSpeed = 360 / moon.duration;
-          const nextAngle = currentState.angle - orbitSpeed * deltaSeconds;
+          const angleDifference = normalizeAngle(nextTargetAngle - currentState.angle);
+          const easeStrength = Math.min(1, deltaSeconds * RETURN_EASE_MULTIPLIER);
+          const nextAngle = currentState.angle + angleDifference * easeStrength;
+          const nextRadius = currentState.radius + (moon.radius - currentState.radius) * easeStrength;
           nextStates[moon.id] = {
             ...currentState,
             angle: nextAngle,
+            radius: nextRadius,
           };
           changed = true;
         });
@@ -220,6 +241,16 @@ export function DashboardView({
   onGenerate,
   onDeveloperReward,
 }: DashboardViewProps) {
+  const [orbitOffset, setOrbitOffset] = useState({ x: 0, y: 0 });
+  const orbitDragRef = useRef<{
+    startX: number;
+    startY: number;
+    originX: number;
+    originY: number;
+    moved: boolean;
+    active: boolean;
+  } | null>(null);
+  const suppressLogoClickRef = useRef(false);
   const centerLogoSrc = selectedSkin === 'catcoin'
     ? catcoinLogo
     : selectedSkin === 'mark'
@@ -235,9 +266,79 @@ export function DashboardView({
       ? 'Mark skin'
       : 'Doge logo';
 
+  const handleLogoPointerDown = useCallback((event: ReactPointerEvent<HTMLButtonElement>) => {
+    orbitDragRef.current = {
+      startX: event.clientX,
+      startY: event.clientY,
+      originX: orbitOffset.x,
+      originY: orbitOffset.y,
+      moved: false,
+      active: true,
+    };
+    suppressLogoClickRef.current = false;
+    event.preventDefault();
+  }, [orbitOffset.x, orbitOffset.y]);
+
+  useEffect(() => {
+    const handlePointerMove = (event: PointerEvent) => {
+      const activeDrag = orbitDragRef.current;
+
+      if (!activeDrag?.active) {
+        return;
+      }
+
+      const deltaX = event.clientX - activeDrag.startX;
+      const deltaY = event.clientY - activeDrag.startY;
+
+      if (!activeDrag.moved && Math.hypot(deltaX, deltaY) > 4) {
+        activeDrag.moved = true;
+      }
+
+      setOrbitOffset({
+        x: activeDrag.originX + deltaX,
+        y: activeDrag.originY + deltaY,
+      });
+    };
+
+    const handlePointerUp = () => {
+      if (!orbitDragRef.current?.active) {
+        return;
+      }
+
+      suppressLogoClickRef.current = orbitDragRef.current.moved;
+      orbitDragRef.current = {
+        ...orbitDragRef.current,
+        active: false,
+      };
+    };
+
+    window.addEventListener('pointermove', handlePointerMove);
+    window.addEventListener('pointerup', handlePointerUp);
+    window.addEventListener('pointercancel', handlePointerUp);
+
+    return () => {
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerUp);
+      window.removeEventListener('pointercancel', handlePointerUp);
+    };
+  }, []);
+
+  const handleGenerateClick: MouseEventHandler<HTMLButtonElement> = useCallback((event) => {
+    if (suppressLogoClickRef.current) {
+      suppressLogoClickRef.current = false;
+      event.preventDefault();
+      return;
+    }
+
+    onGenerate(event);
+  }, [onGenerate]);
+
   return (
     <>
-      <div className="logo-orbit">
+      <div
+        className="logo-orbit"
+        style={{ transform: `translate(${orbitOffset.x}px, ${orbitOffset.y}px)` }}
+      >
         <div className="moon-layer" aria-hidden="true">
           <MoonOrbit moons={miningPupMoons} imageSrc={MOON_LOGO_URL} />
           <MoonOrbit moons={miningPup2Moons} imageSrc={etheruemLogo} className="moon-orbit moon-orbit-tier-two" />
@@ -252,7 +353,8 @@ export function DashboardView({
         <button
           type="button"
           className="logo-button"
-          onClick={onGenerate}
+          onClick={handleGenerateClick}
+          onPointerDown={handleLogoPointerDown}
           aria-label="Generate DogeCoin"
         >
           <img src={centerLogoSrc} className={centerLogoClassName} alt={centerLogoAlt} />
